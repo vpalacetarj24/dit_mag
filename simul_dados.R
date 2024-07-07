@@ -27,8 +27,8 @@ resposta <- if_else(runif(n = num_observacoes) < prob_sucesso, 1, 0)
 
 dados_simul <- dados_simul %>% mutate(resposta = resposta)
 
-saveRDS(params, 'simul\\params.RDS')
+saveRDS(params, 'dados\\params.RDS')
 
-write.csv2(dados_simul, 'simul\\dados_simul.csv', row.names = FALSE)
+write.csv2(dados_simul, 'dados\\simul.csv', row.names = FALSE)
 
 # nolint end
