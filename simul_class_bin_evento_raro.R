@@ -1,7 +1,6 @@
 # nolint start
 
 library(dplyr, warn.conflicts = FALSE)
-library(ggplot2, warn.conflicts = FALSE)
 source('class_bin_evento_raro.R')
 
 dados <- read.csv2('dados\\simul.csv') %>%

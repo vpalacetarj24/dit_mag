@@ -1,0 +1,173 @@
+---
+format:
+
+    html:
+
+        embed-resources: true
+        toc: true
+        toc-location: left
+        toc-title: ' '
+        theme: Spacelab
+---
+
+```{r, echo = FALSE, message = FALSE}
+
+library(dplyr, warn.conflicts = FALSE)
+source('class_bin_evento_raro.R')
+library(plotly, warn.conflicts = FALSE)
+library(kableExtra, warn.conflicts = FALSE)
+
+```
+
+```{r, echo = FALSE}
+
+dados <- read.csv2('dados\\dit_processado.csv', stringsAsFactors = TRUE) %>%
+
+    mutate(cat_idade = cut(idade, 10)) %>%
+
+    mutate(cat_renda = cut(renda, 10)) %>%
+
+    mutate(cat_exp = cut(exp, 10)) %>%
+
+    mutate(log_exp = log(exp), exp_suave = 1 - exp(-exp), exp_exp = exp(exp))
+
+```
+
+```{r, echo = FALSE}
+
+dit_class_bin_evento_raro <- ClassBinEventoRaro(dados = dados, resp = 'usoNuso')
+
+```
+
+```{r, echo = FALSE}
+
+dit_class_bin_evento_raro <- ClassBinEventoRaro(dados = dados, resp = 'usoNuso')
+
+estratos <- c('cat_idade', 'cat_exp', 'cat_renda', 'quantidadeFilhos', 'profissao')
+
+dit_class_bin_evento_raro$particao_endogena(estratos = estratos, percent_casos = 0.8)
+
+```
+
+```{r, echo = FALSE}
+
+modelos <- c()
+
+modelos <- append(modelos, 'usoNuso ~ profissao')
+
+modelos <- append(modelos, 'usoNuso ~ profissao:idade')
+
+modelos <- append(modelos, 'usoNuso ~ profissao:idade + quantidadeFilhos')
+
+modelos <- append(modelos, 'usoNuso ~ profissao:idade + quantidadeFilhos + estadoCivil')
+
+
+```
+
+::: {.panel-tabset}
+
+## exp
+
+```{r, echo = FALSE, warning = FALSE}
+
+dit_class_bin_evento_raro$selecao_va_5_nos(modelos = modelos, offset = 'exp')
+
+dit_class_bin_evento_raro$resultados_va %>% kable()
+
+```
+
+```{r, echo = FALSE}
+
+dit_class_bin_evento_raro$tabela_metricas_teste(ponto_corte = 0.065) 
+
+dit_class_bin_evento_raro$resultados_teste %>% kable()
+
+```
+
+```{r, echo = FALSE}
+
+curva_roc <- dit_class_bin_evento_raro$plota_curva_roc_teste()
+
+curva_roc
+
+```
+
+## log(exp)
+
+```{r, echo = FALSE, warning = FALSE}
+
+dit_class_bin_evento_raro$selecao_va_5_nos(modelos = modelos, offset = 'log_exp')
+
+dit_class_bin_evento_raro$resultados_va %>% kable()
+
+```
+
+```{r, echo = FALSE}
+
+dit_class_bin_evento_raro$tabela_metricas_teste(ponto_corte = 0.08) 
+
+dit_class_bin_evento_raro$resultados_teste %>% kable()
+
+```
+
+```{r, echo = FALSE}
+
+curva_roc <- dit_class_bin_evento_raro$plota_curva_roc_teste()
+
+curva_roc
+
+```
+
+## 1 - exp(-exp)
+
+```{r, echo = FALSE, warning = FALSE}
+
+dit_class_bin_evento_raro$selecao_va_5_nos(modelos = modelos, offset = 'exp_suave')
+
+dit_class_bin_evento_raro$resultados_va %>% kable()
+
+```
+
+```{r, echo = FALSE}
+
+dit_class_bin_evento_raro$tabela_metricas_teste(ponto_corte = 0.065) 
+
+dit_class_bin_evento_raro$resultados_teste %>% kable()
+
+```
+
+```{r, echo = FALSE}
+
+curva_roc <- dit_class_bin_evento_raro$plota_curva_roc_teste()
+
+curva_roc
+
+```
+
+## exp(exp)
+
+```{r, echo = FALSE, warning = FALSE}
+
+dit_class_bin_evento_raro$selecao_va_5_nos(modelos = modelos, offset = 'exp_exp')
+
+dit_class_bin_evento_raro$resultados_va %>% kable()
+
+```
+
+```{r, echo = FALSE}
+
+dit_class_bin_evento_raro$tabela_metricas_teste(ponto_corte = 0.08) 
+
+dit_class_bin_evento_raro$resultados_teste %>% kable()
+
+```
+
+```{r, echo = FALSE}
+
+curva_roc <- dit_class_bin_evento_raro$plota_curva_roc_teste()
+
+curva_roc
+
+```
+
+:::

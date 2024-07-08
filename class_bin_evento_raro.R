@@ -44,28 +44,54 @@ ClassBinEventoRaro <- setRefClass(
 
             Y_teste <<- dados %>% slice(-row_number(treino)) %>% pull(!!sym(resp))
 
-        }, selecao_va_5_nos = function(modelos){
+        }, selecao_va_5_nos = function(modelos, offset){
 
             auc_neg <- function(observado, prob_pred){
 
                 auc <- data.frame(observado = as.factor(observado), prob_pred = prob_pred) %>% 
             
-                    roc_auc(observado, prob_pred, , event_level = 'second') %>% pull(.estimate)
+                    roc_auc(observado, prob_pred, event_level = 'second') %>% pull(.estimate)
 
                 return(-auc)
 
             }
 
-            va_5_nos <- function(modelo){
+            if(!missing(offset)){
 
-                ajuste_va <- cvFit(
+                dados <<- dados %>% mutate(offset = !!sym(offset))
 
-                    glm, formula = modelo, family = binomial(), data = treino, weights = pesos^(-1),
-                    cost = auc_neg, predictArgs = list(type = 'response')
+                treino <<- treino %>% mutate(offset = !!sym(offset))
 
-                )
+                X_teste <<- X_teste %>% mutate(offset = !!sym(offset))
+
+                va_5_nos <- function(modelo){
+
+                    ajuste_va <- cvFit(
+
+                        glm, formula = modelo, family = binomial(), data = treino, 
+                        weights = pesos^(-1), offset = offset,
+                        cost = auc_neg, predictArgs = list(type = 'response')
+
+                    )
                 
-                return(ajuste_va)
+                    return(ajuste_va)
+
+                }
+
+            } else {
+
+                va_5_nos <- function(modelo){
+
+                    ajuste_va <- cvFit(
+
+                        glm, formula = modelo, family = binomial(), data = treino, weights = pesos^(-1),
+                        cost = auc_neg, predictArgs = list(type = 'response')
+
+                    )
+                
+                    return(ajuste_va)
+
+                }
 
             }
 
@@ -76,10 +102,20 @@ ClassBinEventoRaro <- setRefClass(
             resultados_va <<- ajustes_va$cv %>% rename(modelo = Fit, AUC = CV) %>%
 
                 mutate(AUC = -AUC, modelo = as.character(modelo)) %>% arrange(desc(AUC))
- 
-            melhor_ajuste <<- resultados_va %>% slice(1) %>% pull(modelo) %>%
 
-                glm(formula = ., family = binomial(), data = dados)
+            if(!missing(offset)){
+
+                melhor_ajuste <<- resultados_va %>% slice(1) %>% pull(modelo) %>%
+
+                    glm(formula = ., family = binomial(), offset = offset, data = dados)
+
+            } else{
+               
+                melhor_ajuste <<- resultados_va %>% slice(1) %>% pull(modelo) %>%
+
+                    glm(formula = ., family = binomial(), data = dados)
+
+            }
 
         }, plota_curva_roc_teste = function(){
 
@@ -121,7 +157,7 @@ ClassBinEventoRaro <- setRefClass(
 
                 ), plot_bgcolor = 'lightgray'
 
-            ) %>% toWebGL() %>% print()
+            ) %>% toWebGL()
 
         }, tabela_metricas_teste = function(ponto_corte){
 
