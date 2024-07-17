@@ -128,7 +128,7 @@ ClassBinEventoRaro <- setRefClass(
 
             dados_curva_roc %>% plot_ly(
 
-                x = ~ 1 - sensitivity, y = ~ specificity,
+                x = ~ 1 - specificity, y = ~ sensibility,
                 text = ~ round(.threshold, 4), hoverinfo = 'text',
                 mode = 'lines', type = 'scatter', line = list(color = 'blue')
 
@@ -146,14 +146,14 @@ ClassBinEventoRaro <- setRefClass(
                     range = c(-0.05, 1.05), 
                     gridcolor = 'white', 
                     zeroline = FALSE, 
-                    title = '1 - Sensibilidade'
+                    title = '1 - Especificidade'
 
                 ), yaxis = list(
 
                     range = c(-0.05, 1.05), 
                     gridcolor = 'white', 
                     zeroline = FALSE, 
-                    title = 'Especificidade'
+                    title = 'Sensibilidade'
 
                 ), plot_bgcolor = 'lightgray'
 
